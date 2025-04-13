@@ -1,13 +1,17 @@
-const express = require('express');
-const axios = require('axios');
-const path = require('path');
+import express from 'express';
+import axios from 'axios';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const app = express();
 const port = 3000;
 
 const MODELS = ['flux-schnell', 'imagen-3-fast', 'imagen-3', 'recraft-v3'];
 const RATIOS = ['1:1', '16:9', '9:16', '3:2', '4:3', '5:4'];
-
-app.use(express.static('public'));
 
 const generateImage = async (prompt, model, ratio) => {
     const url = 'https://www.pixelmuse.studio/api/predictions';
@@ -43,7 +47,7 @@ const generateImage = async (prompt, model, ratio) => {
 };
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname,'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/image', async (req, res) => {
