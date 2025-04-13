@@ -40,7 +40,12 @@ const generateImage = async (prompt, model, ratio) => {
 
     try {
         const response = await axios.post(url, payload, { headers });
-        return response.data;
+        if (response.data.output && response.data.output[0]) {
+            const imageUrl = response.data.output[0];
+            const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+            return imageResponse.data;
+        }
+        throw new Error('No image generated');
     } catch (error) {
         throw error;
     }
@@ -61,8 +66,9 @@ app.get('/image', async (req, res) => {
     const selectedRatio = RATIOS[parseInt(ratio) - 1] || RATIOS[0];
 
     try {
-        const result = await generateImage(prompt, selectedModel, selectedRatio);
-        res.json(result);
+        const imageBuffer = await generateImage(prompt, selectedModel, selectedRatio);
+        res.set('Content-Type', 'image/webp');
+        res.send(imageBuffer);
     } catch (error) {
         res.status(500).json({ error: 'Failed to generate image' });
     }
