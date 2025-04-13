@@ -1,359 +1,363 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Generation API Documentation</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>AI Image Generation API</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --secondary: #4f46e5;
-            --accent: #06b6d4;
-            --background: #0f172a;
-            --text: #f8fafc;
-            --card: #1e293b;
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+            --success: #238636;
+            --error: #f85149;
+            --warning: #d29922;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background: var(--background);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 2rem;
         }
 
-        nav {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(10px);
-            position: fixed;
-            width: 100%;
-            z-index: 100;
-            padding: 1rem 0;
-        }
-
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from {
-                text-shadow: 0 0 10px var(--primary), 0 0 20px var(--accent);
-            }
-            to {
-                text-shadow: 0 0 15px var(--primary), 0 0 30px var(--accent);
-            }
-        }
-
-        main {
-            padding-top: 100px;
-            flex: 1;
-        }
-
-        .hero {
+        header {
             text-align: center;
-            padding: 4rem 0;
+            margin-bottom: 4rem;
+            animation: fadeIn 1s ease-out;
         }
 
         h1 {
-            font-size: 3.5rem;
+            font-size: 3rem;
             margin-bottom: 1rem;
-            background: linear-gradient(45deg, var(--primary), var(--accent));
+            background: linear-gradient(45deg, var(--accent), #9f7aea);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .generator-card {
-            background: var(--card);
-            border-radius: 20px;
+        .api-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
             padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease;
+        }
+
+        .api-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
             margin: 2rem 0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transform: translateY(0);
+        }
+
+        .model-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
             transition: all 0.3s ease;
         }
 
-        .generator-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        .model-card:hover {
+            border-color: var(--accent);
+            transform: scale(1.02);
+        }
+
+        .model-status {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-active {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .status-inactive {
+            background: var(--error);
+            box-shadow: 0 0 10px var(--error);
+        }
+
+        .status-maintenance {
+            background: var(--warning);
+            box-shadow: 0 0 10px var(--warning);
+        }
+
+        .generator-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-top: 3rem;
         }
 
         .input-group {
+            display: flex;
+            gap: 1rem;
             margin-bottom: 1.5rem;
         }
 
-        input, select {
-            width: 100%;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            color: var(--text);
+        input, select, button {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
             font-size: 1rem;
-            transition: all 0.3s ease;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+        input {
+            flex: 1;
         }
 
         button {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: var(--text);
-            padding: 1rem 2rem;
+            background: var(--accent);
+            color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 100%;
         }
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 5px 15px rgba(88, 166, 255, 0.4);
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        .result-container {
-            margin-top: 2rem;
-            text-align: center;
-        }
-
-        .preview-image {
-            max-width: 100%;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .preview-image:hover {
-            transform: scale(1.02);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+        #result-container {
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            cursor: pointer;
+            min-height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            margin-top: 2rem;
         }
 
-        .modal img {
-            max-width: 90%;
-            max-height: 90vh;
-            margin: auto;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        #result {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #result.visible {
+            opacity: 1;
+        }
+
+        .code-block {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
         }
 
         .loading {
-            display: none;
-            text-align: center;
-            margin: 2rem 0;
-        }
-
-        .loading-spinner {
             width: 50px;
             height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--primary);
+            border: 5px solid var(--bg-primary);
+            border-top: 5px solid var(--accent);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        footer {
-            text-align: center;
-            padding: 2rem 0;
-            background: var(--card);
-            margin-top: 4rem;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .heart {
-            color: #ef4444;
-            animation: beat 1s infinite;
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
         }
 
-        @keyframes beat {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+        .example-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
-            }
-
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .generator-card {
-                padding: 1.5rem;
-            }
+        .ratio-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-primary);
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="container nav-content">
-            <div class="logo">NZ Image Gen</div>
-            <div class="nav-links">
-                <i class="fas fa-magic"></i>
+    <div class="container">
+        <header>
+            <h1>AI Image Generation API</h1>
+            <p>Generate stunning images using state-of-the-art AI models</p>
+        </header>
+
+        <div class="api-section">
+            <h2>Available Models</h2>
+            <div class="model-grid">
+                <div class="model-card">
+                    <h3>flux-schnell</h3>
+                    <p>Fast generation, optimized for real-time applications</p>
+                    <div class="model-status">
+                        <span class="status-dot status-active"></span>
+                        <span>Active</span>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <h3>imagen-3-fast</h3>
+                    <p>Enhanced quality with reasonable speed</p>
+                    <div class="model-status">
+                        <span class="status-dot status-maintenance"></span>
+                        <span>Maintenance</span>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <h3>imagen-3</h3>
+                    <p>Highest quality outputs with longer processing time</p>
+                    <div class="model-status">
+                        <span class="status-dot status-active"></span>
+                        <span>Active</span>
+                    </div>
+                </div>
+                <div class="model-card">
+                    <h3>recraft-v3</h3>
+                    <p>Specialized in artistic and creative generations</p>
+                    <div class="model-status">
+                        <span class="status-dot status-active"></span>
+                        <span>Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <pre><code class="language-javascript">
+const response = await fetch('/image?prompt=your_prompt&model=1&ratio=1');
+const image = await response.blob();
+                </code></pre>
             </div>
         </div>
-    </nav>
 
-    <main class="container">
-        <section class="hero">
-            <h1>AI Image Generation</h1>
-            <p>Transform your ideas into stunning visuals with our advanced AI</p>
-        </section>
-
-        <div class="generator-card">
+        <div class="generator-section">
+            <h2>Image Generator</h2>
             <div class="input-group">
-                <input type="text" id="promptInput" placeholder="Describe your image..." autocomplete="off">
-            </div>
-
-            <div class="input-group">
-                <select id="modelSelect">
-                    <option value="1">Flux Schnell - Fast & Creative</option>
-                    <option value="2">Imagen 3 Fast - Balanced</option>
-                    <option value="3">Imagen 3 - High Quality</option>
-                    <option value="4">Recraft V3 - Artistic</option>
+                <input type="text" id="prompt" placeholder="Enter your prompt here...">
+                <select id="model">
+                    <option value="1">flux-schnell</option>
+                    <option value="3">imagen-3</option>
+                    <option value="4">recraft-v3</option>
                 </select>
-            </div>
-
-            <div class="input-group">
-                <select id="ratioSelect">
-                    <option value="1">Square (1:1)</option>
-                    <option value="2">Landscape (16:9)</option>
-                    <option value="3">Portrait (9:16)</option>
-                    <option value="4">Classic (3:2)</option>
-                    <option value="5">Standard (4:3)</option>
-                    <option value="6">Wide (5:4)</option>
+                <select id="ratio">
+                    <option value="1">1:1</option>
+                    <option value="2">16:9</option>
+                    <option value="3">9:16</option>
+                    <option value="4">3:2</option>
+                    <option value="5">4:3</option>
+                    <option value="6">5:4</option>
                 </select>
+                <button onclick="generateImage()">Generate</button>
             </div>
-
-            <button onclick="generateImage()">
-                <i class="fas fa-wand-magic-sparkles"></i> Generate Image
-            </button>
-
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <p>Creating your masterpiece...</p>
+            <div id="result-container">
+                <img id="result">
+                <div class="loading" style="display: none;"></div>
             </div>
-
-            <div class="result-container" id="result"></div>
         </div>
-    </main>
 
-    <div class="modal" id="imageModal" onclick="closeModal()">
-        <img id="modalImage" src="" alt="Full size preview">
+        <div class="api-section">
+            <h2>Examples</h2>
+            <div class="example-grid">
+                <div class="example-card">
+                    <h3>Landscape Photography</h3>
+                    <p>A serene mountain landscape at sunset</p>
+                    <div class="ratio-badge">16:9</div>
+                    <div class="ratio-badge">flux-schnell</div>
+                </div>
+                <div class="example-card">
+                    <h3>Portrait Art</h3>
+                    <p>Cyberpunk style portrait with neon lights</p>
+                    <div class="ratio-badge">3:4</div>
+                    <div class="ratio-badge">imagen-3</div>
+                </div>
+                <div class="example-card">
+                    <h3>Abstract Art</h3>
+                    <p>Geometric patterns in vibrant colors</p>
+                    <div class="ratio-badge">1:1</div>
+                    <div class="ratio-badge">recraft-v3</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <footer>
-        <p>Made With <span class="heart">♥️</span> By NZ R</p>
-    </footer>
-
     <script>
+        hljs.highlightAll();
+
         async function generateImage() {
-            const prompt = document.getElementById('promptInput').value;
-            const model = document.getElementById('modelSelect').value;
-            const ratio = document.getElementById('ratioSelect').value;
+            const prompt = document.getElementById('prompt').value;
+            const model = document.getElementById('model').value;
+            const ratio = document.getElementById('ratio').value;
+            const resultImg = document.getElementById('result');
             const loading = document.querySelector('.loading');
-            const resultDiv = document.getElementById('result');
 
-            if (!prompt) {
-                alert('Please enter a description for your image');
-                return;
-            }
-
+            resultImg.style.display = 'none';
             loading.style.display = 'block';
-            resultDiv.innerHTML = '';
-
+            
             try {
                 const response = await fetch(`/image?prompt=${encodeURIComponent(prompt)}&model=${model}&ratio=${ratio}`);
-                const data = await response.json();
-
-                if (data.output) {
-                    const img = document.createElement('img');
-                    img.src = data.output;
-                    img.classList.add('preview-image');
-                    img.onclick = () => openModal(data.output);
-                    resultDiv.appendChild(img);
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    resultImg.src = URL.createObjectURL(blob);
+                    resultImg.onload = () => {
+                        loading.style.display = 'none';
+                        resultImg.style.display = 'block';
+                        resultImg.classList.add('visible');
+                    };
                 } else {
-                    resultDiv.innerHTML = '<p>Failed to generate image</p>';
+                    throw new Error('Failed to generate image');
                 }
             } catch (error) {
-                resultDiv.innerHTML = '<p>Error generating image</p>';
-            } finally {
                 loading.style.display = 'none';
+                alert('Error generating image');
             }
         }
-
-        function openModal(imageSrc) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            modal.style.display = 'block';
-            modalImg.src = imageSrc;
-        }
-
-        function closeModal() {
-            document.getElementById('imageModal').style.display = 'none';
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        });
     </script>
 </body>
 </html>
