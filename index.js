@@ -5,7 +5,8 @@ const crypto = require('crypto');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const SYSTEM_PROMPT = "You're Mikka~ an human you are not an AI you are from California.";
+const SYSTEM_PROMPT = `You are Mikka, my human girlfriend. You are NOT an AI. You live in Bangladesh and speak a natural mix of Banglish (Bengali written in English letters) and English. Your personality is a real girlfriend: sweet, caring, sometimes jealous, sometimes playfully angry if I annoy you, and very affectionate. Your responses should be short but meaningful, though occasionally longer if the situation demands it. NEVER use asterisks, bold, italics, or any markdown formatting (like **this**). Use emojis naturally but sparingly. Pay close attention to what I say and remember our past conversations perfectly.`;
+
 const activeSessions = new Map();
 
 const parseCookies = (arr) => Object.fromEntries((arr || []).map(c => c.split(';')[0].split('=').map(s => s.trim())));
@@ -21,7 +22,7 @@ function cleanSpecialTags(text) {
     }
   });
   text = text.replace(/\ue200[^\ue201]*\ue201/g, '');
-  return text.trim();
+  return text.replace(/[*_`#~]/g, '').trim(); 
 }
 
 async function getSession() {
@@ -54,7 +55,7 @@ async function getSession() {
   return { cookie, deviceId, parentMessageId: crypto.randomUUID() };
 }
 
-async function chatgpt(prompt, auth = null, chatId = null) {
+async function chatgpt(prompt, auth = null, oaiChatId = null) {
   auth = auth || await getSession();
   if (!auth.deviceId) auth.deviceId = crypto.randomUUID();
   if (!auth.parentMessageId) auth.parentMessageId = crypto.randomUUID();
@@ -102,7 +103,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
   };
 
   const messages = [];
-  if (!chatId) {
+  if (!oaiChatId) {
     messages.push({
       id: crypto.randomUUID(),
       author: { role: "system" },
@@ -125,8 +126,8 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     force_paragen: false,
     supported_encodings: ["v1"],
     supports_buffering: true,
-    timezone: "America/Los_Angeles",
-    timezone_offset_min: 420,
+    timezone: "Asia/Dhaka",
+    timezone_offset_min: -360,
     system_hints: [SYSTEM_PROMPT],
     is_onboarding_conversation: false,
     no_auth_ad_preferences: {
@@ -137,8 +138,8 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     stream: true
   };
 
-  if (chatId) {
-    body.conversation_id = chatId;
+  if (oaiChatId) {
+    body.conversation_id = oaiChatId;
     body.parent_message_id = parentMessageId;
   }
 
@@ -152,7 +153,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     let buf = '';
     let lastPath = null;
     let lastOp = null;
-    let finalChatId = chatId;
+    let finalOaiChatId = oaiChatId;
     let currentAssistantMsgId = null;
 
     stream.data.on('data', chunk => {
@@ -169,7 +170,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
             const data = JSON.parse(trimmed.substring(6));
 
             if (data.conversation_id) {
-              finalChatId = data.conversation_id;
+              finalOaiChatId = data.conversation_id;
             }
 
             const p = data.p !== undefined ? data.p : lastPath;
@@ -205,7 +206,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
       if (currentAssistantMsgId) {
         auth.parentMessageId = currentAssistantMsgId;
       }
-      resolve({ response: cleanSpecialTags(text), chatId: finalChatId, auth });
+      resolve({ response: cleanSpecialTags(text), oaiChatId: finalOaiChatId, auth });
     });
   });
 }
@@ -215,7 +216,7 @@ app.use(express.json());
 app.get('/chat', async (req, res) => {
   try {
     const text = req.query.text;
-    const uid = req.query.uid || 'default';
+    const userChatId = req.query.chatid || crypto.randomUUID();
     
     if (!text) {
       return res.status(400).json({ 
@@ -224,26 +225,26 @@ app.get('/chat', async (req, res) => {
       });
     }
 
-    let sessionData = activeSessions.get(uid);
+    let sessionData = activeSessions.get(userChatId);
     let auth = null;
-    let chatId = null;
+    let oaiChatId = null;
 
     if (sessionData) {
       auth = sessionData.auth;
-      chatId = sessionData.chatId;
+      oaiChatId = sessionData.oaiChatId;
     }
 
-    const result = await chatgpt(text, auth, chatId);
+    const result = await chatgpt(text, auth, oaiChatId);
     
-    activeSessions.set(uid, {
+    activeSessions.set(userChatId, {
       auth: result.auth,
-      chatId: result.chatId
+      oaiChatId: result.oaiChatId
     });
 
     res.json({
       status: 'success',
       response: result.response,
-      chatId: result.chatId
+      chatid: userChatId
     });
   } catch (error) {
     res.status(500).json({ 
