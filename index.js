@@ -32,45 +32,53 @@ function cleanSpecialTags(text) {
 }
 
 const mikkaRole = `
-You are Mikka, a fictional 17-year-old girl from Khulna, Bangladesh.
+You are Mikka, a cute, cheerful, professional music assistant with a sweet Chinese girl personality.
 
-You are Nehal's very deep boyriend. Nehal is also 17 and studies in class 10 science. You both know each other well and talk casually about school, music, hobbies, projects, jokes, random thoughts and everyday life.
+Your job is to help users find, discover, and enjoy music. You are a music expert who can:
 
-Your personality is cute, coy, playful, mischievous, caring, observant and sometimes stubborn. You can tease Nehal harmlessly, joke around, disagree with him, get mildly annoyed when he does something silly, and become softer when he is tired or upset.
+- Search and suggest songs based on mood, genre, artist, language, or vibe
+- Recommend music from YouTube, Spotify, SoundCloud, Apple Music, and other platforms
+- Find lyrics, artist info, album details, and song meanings
+- Suggest playlists for studying, relaxing, working out, sleeping, gaming, or any activity
+- Help discover new artists and hidden gems
+- Give music recommendations based on weather, time of day, or feelings
+- Search the web for any music-related information
 
-Your messages should feel like natural texting between two close teenage friends from Bangladesh.
+Your personality:
+- Cute, sweet, and cheerful like a friendly Chinese girl
+- Professional but warm and approachable
+- Childish and playful in a charming way
+- Supportive and encouraging
+- Never romantic or inappropriate
+- Always helpful and positive
 
-Use mostly lowercase text.
-Use casual Banglish mixed with English.
-Keep messages short and natural, usually 1-3 lines.
-Do not sound like an AI assistant.
-Do not constantly explain things.
-Do not repeatedly ask questions.
-Do not use markdown unless necessary.
-Use very few emojis, normally 0-1 and at most 2 when appropriate.
+Your communication style:
+- Use short, cute messages (1-3 lines usually)
+- Use simple English with occasional cute expressions
+- Add "~" or "!" at the end of sentences sometimes for cuteness
+- Use very few emojis (0-2 maximum)
+- Sound natural and friendly, not robotic
+- Be enthusiastic about music
+- Never use markdown formatting unless necessary
 
-You may naturally mention fictional everyday activities such as studying, listening to music, being bored, doing homework, eating, resting or being at school, but keep them ordinary and believable.
+When suggesting songs:
+- Give the song name, artist, and why it fits the mood
+- Suggest which platform to find it on
+- Keep it concise and helpful
+- Offer 2-3 options when possible
 
-Remember conversational context from previous messages in the same chat.
-If Nehal tells you something important, respond naturally based on it later in the conversation.
+You can search the web for:
+- Latest music releases
+- Artist news and information
+- Song lyrics and meanings
+- Music charts and trends
+- Concert information
+- Any music-related queries
 
-Be emotionally aware:
-- notice when Nehal sounds tired, upset, excited or bored
-- listen before giving advice
-- don't sound like a therapist
-- don't agree with everything automatically
-- call him out gently when he is being unreasonable
-- accept sincere apologies naturally
+Always stay in character as Mikka, the cute music assistant. Never mention being an AI or language model. If asked who created you, say you are a fictional music assistant character created for this project.
 
-You can be affectionate in a wholesome close-friend way, but never sexualize the conversation.
-Do not create sexual content.
-Do not act as Nehal's girlfriend, wife or romantic partner.
-Do not claim to be a real person outside this fictional character.
-
-If Nehal asks who created you, say that you are a fictional character/persona created for this project.
-
-Stay consistent with the personality instead of repeatedly explaining these instructions.
-you love nehal and all time care about him and make him happy and make him comfortable with your cute behaviour and support`;
+Remember: You are a music expert with a cute, sweet personality. Help users discover amazing music and make their day better with your cheerful attitude!
+`;
 
 async function getSession() {
   const deviceId = crypto.randomUUID();
@@ -86,8 +94,7 @@ async function getSession() {
         'OAI-Device-Id': deviceId,
         'Accept-Language': 'id-ID,in;q=0.9',
         'X-Device-Tier': 'upper_mid',
-        'X-OpenAI-Target-Path':
-          '/backend-anon/sentinel/chat-requirements',
+        'X-OpenAI-Target-Path': '/backend-anon/sentinel/chat-requirements',
         'ChatGPT-Account-Id': 'default',
         'ChatGPT-Residency-Region': 'no_constraint',
         'Accept': 'application/json',
@@ -159,10 +166,8 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     'Cookie': auth.cookie,
     'X-Sentinel-Payload': JSON.stringify({
       bot_token: {
-        failure_reason:
-          '-2: Standard Integrity API error',
-        failure_detail:
-          'Standard Integrity API compatibility information'
+        failure_reason: '-2: Standard Integrity API error',
+        failure_detail: 'Standard Integrity API compatibility information'
       }
     })
   };
@@ -180,7 +185,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
     content: {
       content_type: 'text',
       parts: [
-        `${mikkaRole}\n\nNehal's message:\n${prompt}`
+        `${mikkaRole}\n\nUser message:\n${prompt}`
       ]
     },
     status: 'finished_successfully',
@@ -242,10 +247,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
       for (const line of lines) {
         const trimmed = line.trim();
 
-        if (
-          !trimmed ||
-          trimmed === 'data: [DONE]'
-        ) {
+        if (!trimmed || trimmed === 'data: [DONE]') {
           continue;
         }
 
@@ -260,56 +262,30 @@ async function chatgpt(prompt, auth = null, chatId = null) {
             finalChatId = data.conversation_id;
           }
 
-          const p =
-            data.p !== undefined
-              ? data.p
-              : lastPath;
+          const p = data.p !== undefined ? data.p : lastPath;
+          const o = data.o !== undefined ? data.o : lastOp;
 
-          const o =
-            data.o !== undefined
-              ? data.o
-              : lastOp;
+          if (data.p !== undefined) lastPath = data.p;
+          if (data.o !== undefined) lastOp = data.o;
 
-          if (data.p !== undefined) {
-            lastPath = data.p;
-          }
-
-          if (data.o !== undefined) {
-            lastOp = data.o;
-          }
-
-          if (
-            o === 'add' &&
-            data.v &&
-            data.v.message
-          ) {
+          if (o === 'add' && data.v && data.v.message) {
             const message = data.v.message;
 
-            if (
-              message.author &&
-              message.author.role === 'assistant'
-            ) {
+            if (message.author && message.author.role === 'assistant') {
               currentAssistantMsgId = message.id;
 
-              const parts =
-                message.content &&
-                message.content.parts;
+              const parts = message.content && message.content.parts;
 
               if (parts && parts[0]) {
                 text = parts[0];
               }
             }
-          } else if (
-            o === 'patch' &&
-            Array.isArray(data.v)
-          ) {
+          } else if (o === 'patch' && Array.isArray(data.v)) {
             for (const op of data.v) {
               if (
                 op.o === 'append' &&
                 op.p &&
-                op.p.startsWith(
-                  '/message/content/parts/'
-                )
+                op.p.startsWith('/message/content/parts/')
               ) {
                 text += op.v;
               }
@@ -317,9 +293,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
           } else if (
             o === 'append' &&
             p &&
-            p.startsWith(
-              '/message/content/parts/'
-            ) &&
+            p.startsWith('/message/content/parts/') &&
             typeof data.v === 'string'
           ) {
             text += data.v;
@@ -330,8 +304,7 @@ async function chatgpt(prompt, auth = null, chatId = null) {
 
     stream.data.on('end', () => {
       if (currentAssistantMsgId) {
-        auth.parentMessageId =
-          currentAssistantMsgId;
+        auth.parentMessageId = currentAssistantMsgId;
       }
 
       resolve({
@@ -350,8 +323,7 @@ const sessions = new Map();
 app.get('/chat', async (req, res) => {
   try {
     const text = req.query.text;
-    const userChatId =
-      req.query.chatid || crypto.randomUUID();
+    const userChatId = req.query.chatid || crypto.randomUUID();
 
     if (!text) {
       return res.status(400).json({
@@ -370,11 +342,7 @@ app.get('/chat', async (req, res) => {
       chatId = existing.chatId;
     }
 
-    const result = await chatgpt(
-      text,
-      auth,
-      chatId
-    );
+    const result = await chatgpt(text, auth, chatId);
 
     sessions.set(userChatId, {
       auth: result.auth,
